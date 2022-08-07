@@ -4,10 +4,10 @@ import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Player;
 import com.bol.mancala.repository.BoardRepository;
 import com.bol.mancala.service.BoardServiceImpl;
+import com.bol.mancala.service.PitService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Set;
 
@@ -16,9 +16,12 @@ public class BoardTestHelper {
     @Mock
     private static BoardRepository boardRepository;
 
+    @Mock
+    private static PitService pitService;
+
     private final static int defaultNumberOfEachPlayerPits = 6;
     private final static int defaultNumberOfEachPitStones = 6;
-    private final static BoardServiceImpl boardService = new BoardServiceImpl(boardRepository, defaultNumberOfEachPlayerPits, defaultNumberOfEachPitStones);
+    private final static BoardServiceImpl boardService = new BoardServiceImpl(boardRepository, pitService, defaultNumberOfEachPlayerPits, defaultNumberOfEachPitStones);
 
     public static Board initializeTowPlayerBoard() {
         Set<Player> players = Set.of(

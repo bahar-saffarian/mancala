@@ -12,12 +12,16 @@ import static com.bol.mancala.util.PlayBoardValidator.*;
 
 public interface PlayBoardValidator extends Function<Board, List<ValidationResult>> {
     enum ValidationResult {
+        THE_GAME_IS_OVER,
         INDEX_NOT_IN_BOARD_RANGE,
         MANKALA_IS_NOT_ACCEPTABLE_AS_START_POINT,
         VIOLATE_PLAYER_TURN,
         START_PIT_IS_EMPTY,
     }
 
+    static PlayBoardValidator validateGameOver() {
+        return board -> board.isFinished() ? List.of(ValidationResult.THE_GAME_IS_OVER) : List.of();
+    }
     static PlayBoardValidator validateIndexInRange(int startIndex) {
         return board ->
                 startIndex < board.getPits().size() ?
@@ -45,7 +49,8 @@ public interface PlayBoardValidator extends Function<Board, List<ValidationResul
     default PlayBoardValidator and(PlayBoardValidator other) {
         return board -> {
             List<ValidationResult> validationResults = new ArrayList<>(this.apply(board));
-            if (!validationResults.contains(ValidationResult.INDEX_NOT_IN_BOARD_RANGE)) {
+            if (!validationResults.contains(ValidationResult.INDEX_NOT_IN_BOARD_RANGE)
+                    && !validationResults.contains(ValidationResult.THE_GAME_IS_OVER)) {
                 List<ValidationResult> otherValidationResults = other.apply(board);
                 validationResults.addAll(otherValidationResults);
             }
@@ -56,7 +61,8 @@ public interface PlayBoardValidator extends Function<Board, List<ValidationResul
 
     static PlayBoardValidator validatePlayFromPit(int pitIndex) {
 
-        return validateIndexInRange(pitIndex).and(
+        return validateGameOver().and(
+                validateIndexInRange(pitIndex)).and(
                 validateNotSelectEmptyPitAsStartPoint(pitIndex)).and(
                 validateNotSelectMankalaAsStartPoint(pitIndex)).and(
                 validateToNotViolatePlayerTurn(pitIndex));

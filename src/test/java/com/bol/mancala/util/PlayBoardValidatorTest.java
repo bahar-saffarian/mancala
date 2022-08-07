@@ -8,11 +8,23 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class PlayBoardValidatorTest {
+
+    @Test
+    void gameOverValidationTest() {
+        //Given
+        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        board.setFinished(true);
+        //When
+        List<PlayBoardValidator.ValidationResult> errors = PlayBoardValidator.validateGameOver().apply(board);
+
+        //Then
+        assertThat(errors).isNotNull();
+        assertThat(errors.contains(PlayBoardValidator.ValidationResult.THE_GAME_IS_OVER)).isTrue();
+    }
 
     @Test
     void inBoundRangeTest() {
@@ -101,6 +113,20 @@ public class PlayBoardValidatorTest {
         //Then
         assertThat(errors).isNotNull();
         assertThat(errors.contains(PlayBoardValidator.ValidationResult.INDEX_NOT_IN_BOARD_RANGE)).isTrue();
+    }
+
+    @Test
+    void validatePlayPitWhenTheGameIsOverWhitPriorityTest() {
+        //Given
+        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        board.setFinished(true);
+        //When
+        List<PlayBoardValidator.ValidationResult> errors = PlayBoardValidator.validatePlayFromPit(board.getPits().size()).apply(board);
+
+        //Then
+        assertThat(errors).isNotNull();
+        assertThat(errors.size()).isEqualTo(1);
+        assertThat(errors.contains(PlayBoardValidator.ValidationResult.THE_GAME_IS_OVER)).isTrue();
     }
 
     @Test

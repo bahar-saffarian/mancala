@@ -26,12 +26,15 @@ public class BoardServiceTest {
     @Mock
     private BoardRepository boardRepository;
 
+    @Mock
+    private PitService pitService;
+
     @Value("${board.numberOfEachPlayerPits}") private int defaultNumberOfEachPlayerPits;
     @Value("${board.numberOfEachPitStones}") private int defaultNumberOfEachPitStones;
 
     @BeforeEach
     void setUp() {
-        boardService = new BoardServiceImpl(boardRepository, defaultNumberOfEachPlayerPits, defaultNumberOfEachPitStones);
+        boardService = new BoardServiceImpl(boardRepository, pitService, defaultNumberOfEachPlayerPits, defaultNumberOfEachPitStones);
     }
 
     @Test

@@ -1,10 +1,14 @@
 package com.bol.mancala.service;
 
+import com.bol.mancala.data.LastStoneSowResult;
+import com.bol.mancala.data.SowResult;
 import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Pit;
 import com.bol.mancala.model.Player;
 import com.bol.mancala.model.Stone;
 import com.bol.mancala.repository.BoardRepository;
+import com.bol.mancala.util.ListUtil;
+import com.bol.mancala.util.MankalaRulesUtil;
 import com.bol.mancala.util.PlayBoardValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,21 +16,24 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
 public class BoardServiceImpl implements BoardService {
     final private BoardRepository boardRepository;
+    final private PitService pitService;
 
     @Autowired
     public BoardServiceImpl(
             BoardRepository boardRepository,
-            @Value("${board.numberOfEachPlayerPits}") int defaultNumberOfEachPlayerPits,
+            PitService pitService, @Value("${board.numberOfEachPlayerPits}") int defaultNumberOfEachPlayerPits,
             @Value("${board.numberOfEachPitStones}") int defaultNumberOfEachPitStones
 
     ) {
         this.boardRepository = boardRepository;
+        this.pitService = pitService;
         this.DEFAULT_NUMBER_OF_EACH_PLAYER_PITS = defaultNumberOfEachPlayerPits;
         this.DEFAULT_NUMBER_OF_EACH_PIT_STONES = defaultNumberOfEachPitStones;
     }
@@ -94,19 +101,66 @@ public class BoardServiceImpl implements BoardService {
     private void linkPlayersInOrder(List<Player> playerList) {
         IntStream.range(0, playerList.size())
                 .forEach(
-                        i -> playerList.get(i).setNextPlayer(playerList.get((i+1) % playerList.size()))
+                        i -> playerList.get(i).setNextPlayer(ListUtil.getNextOfLoopList(playerList, (i+1)))
                 );
     }
 
     @Override
-    public Board playFromPit(Long boardId, int pitIndex) {
+    @Transactional
+    public Board playFromPit(final Long boardId, final int pitIndex) {
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new NoSuchElementException("Board Not found"));
 
         List<PlayBoardValidator.ValidationResult> validationErrors = PlayBoardValidator.validatePlayFromPit(pitIndex).apply(board);
         if (!validationErrors.isEmpty()) throw new IllegalStateException(validationErrors.toString()); //TODO Custom error handling
 
+        pickupAndSowStonesInSuccessivePits(pitIndex, board);
 
-        return null;
+        if (MankalaRulesUtil.isTheGaveOver(board)) {
+            board.setFinished(true);
+            board.setWinner(MankalaRulesUtil.getWinners(board));
+        }
+
+        return board;
     }
+
+    private void pickupAndSowStonesInSuccessivePits(int pitIndex, Board board) {
+        Set<Stone> stonesToSow = pitService.pickupStonesFromPit(pitIndex, board);
+        Iterator<Stone> stonesIterator = stonesToSow.iterator();
+        AtomicInteger pitIndexToSow = new AtomicInteger(pitIndex);
+
+        //Sow stones in successive pits Except the last one, because the last stone plays the main roll in game
+        IntStream.range(0, (stonesToSow.size()-1)).forEach(i -> {
+            SowResult sowResult;
+            Stone stoneToSow = stonesIterator.next();
+            do {
+                pitIndexToSow.set(pitIndexToSow.get() + 1);
+                sowResult = pitService.sow(stoneToSow, ListUtil.getNextOfLoopList(board.getPits(), pitIndexToSow.get()));
+            } while (sowResult.equals(SowResult.NOT_SOWED));
+        });
+
+        //SOW the last stone
+        Stone lastStoneToSow = stonesIterator.next();
+        LastStoneSowResult lastStoneSowResult;
+        Pit lastPitToSow;
+        do {
+            pitIndexToSow.set(pitIndexToSow.get() + 1);
+            lastPitToSow = ListUtil.getNextOfLoopList(board.getPits(), pitIndexToSow.get());
+            lastStoneSowResult = pitService.sowLastStone(lastStoneToSow, lastPitToSow);
+        } while (lastStoneSowResult.equals(LastStoneSowResult.NOT_SOWED));
+
+        switch (lastStoneSowResult) {
+            case SOWED -> board.setTurn(board.getTurn().getNextPlayer());
+            case ANOTHER_ROUND -> board.setTurn(board.getTurn());
+            case TAKE_FROM_ALL_PLAYERS -> {
+                Pit ownerPlayerMankalaPit = board.getTurn().getMankala();
+                int pitToCaptureOffset = lastPitToSow.getPitIndexInBoard() - board.getTurn().getFirstPitIndex();
+                board.getPlayers().forEach(player -> {
+                    Set<Stone> pickedStones = pitService.pickupStonesFromPit(player.getFirstPitIndex() + pitToCaptureOffset, board);
+                    pitService.sowCapturedStonesInMankala(pickedStones, ownerPlayerMankalaPit);
+                });
+            }
+        }
+    }
+
 
 }

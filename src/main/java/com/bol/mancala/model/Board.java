@@ -23,6 +23,8 @@ public class Board extends BaseEntity {
     private Set<Player> players;
     @OneToOne
     private Player turn;
+    @OneToMany
+    private List<Player> winner;
     private boolean finished = false;
 
     public Board(List<Pit> pits, Set<Player> players, Player turn) {
