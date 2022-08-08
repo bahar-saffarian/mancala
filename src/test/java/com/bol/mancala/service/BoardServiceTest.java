@@ -4,6 +4,9 @@ import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Pit;
 import com.bol.mancala.model.Player;
 import com.bol.mancala.repository.BoardRepository;
+import com.bol.mancala.repository.PitRepository;
+import com.bol.mancala.repository.PlayerRepository;
+import com.bol.mancala.repository.StoneRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +28,12 @@ public class BoardServiceTest {
 
     @Mock
     private BoardRepository boardRepository;
-
+    @Mock
+    private PlayerRepository playerRepository;
+    @Mock
+    private PitRepository pitRepository;
+    @Mock
+    private StoneRepository stoneRepository;
     @Mock
     private PitService pitService;
 
@@ -34,7 +42,7 @@ public class BoardServiceTest {
 
     @BeforeEach
     void setUp() {
-        boardService = new BoardServiceImpl(boardRepository, pitService, defaultNumberOfEachPlayerPits, defaultNumberOfEachPitStones);
+        boardService = new BoardServiceImpl(boardRepository, playerRepository, pitRepository, stoneRepository, pitService, defaultNumberOfEachPlayerPits, defaultNumberOfEachPitStones);
     }
 
     @Test
@@ -55,12 +63,12 @@ public class BoardServiceTest {
         assertThat(board.getPits().size()).isEqualTo(players.size()*(eachPlayerPitNum+1));
 
         IntStream.range(0, board.getPits().size()).forEach(index -> assertThat(board.getPits().get(index).getPitIndexInBoard()).isEqualTo(index));
-        board.getPits().stream().filter(pit -> !pit.isMankala()).forEach(pit -> assertThat(pit.getStones().size()).isEqualTo(eachPitStoneNum));
-        board.getPits().stream().filter(Pit::isMankala).forEach(pit -> assertThat(pit.getStones().size()).isEqualTo(0));
+        board.getPits().stream().filter(pit -> !pit.isMancala()).forEach(pit -> assertThat(pit.getStones().size()).isEqualTo(eachPitStoneNum));
+        board.getPits().stream().filter(Pit::isMancala).forEach(pit -> assertThat(pit.getStones().size()).isEqualTo(0));
         assertThat(board.getTurn()).isNotNull();
 
-        players.forEach(player -> assertThat(player.getMankala()).isNotNull());
-        players.forEach(player -> assertThat(player.getFirstPitIndex()).isIn(0, eachPlayerPitNum+1)); // Plus one is for Mankala pit
+        players.forEach(player -> assertThat(player.getMancala()).isNotNull());
+        players.forEach(player -> assertThat(player.getFirstPitIndex()).isIn(0, eachPlayerPitNum+1)); // Plus one is for Mancala pit
         players.forEach(player -> assertThat(player.getPitCount()).isEqualTo(eachPitStoneNum));
 
         assertThat(players.contains(board.getTurn())).isTrue();
@@ -82,11 +90,11 @@ public class BoardServiceTest {
         assertThat(board.getPits().size()).isGreaterThan(players.size()*2);
 
         IntStream.range(0, board.getPits().size()).forEach(index -> assertThat(board.getPits().get(index).getPitIndexInBoard()).isEqualTo(index));
-        board.getPits().stream().filter(pit -> !pit.isMankala()).forEach(pit -> assertThat(pit.getStones().size()).isGreaterThan(players.size()));
-        board.getPits().stream().filter(Pit::isMankala).forEach(pit -> assertThat(pit.getStones().size()).isEqualTo(0));
+        board.getPits().stream().filter(pit -> !pit.isMancala()).forEach(pit -> assertThat(pit.getStones().size()).isGreaterThan(players.size()));
+        board.getPits().stream().filter(Pit::isMancala).forEach(pit -> assertThat(pit.getStones().size()).isEqualTo(0));
         assertThat(board.getTurn()).isNotNull();
 
-        players.forEach(player -> assertThat(player.getMankala()).isNotNull());
+        players.forEach(player -> assertThat(player.getMancala()).isNotNull());
         players.forEach(player -> assertThat(player.getPitCount()).isGreaterThan(1));
 
         assertThat(players.contains(board.getTurn())).isTrue();

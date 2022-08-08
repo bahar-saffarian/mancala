@@ -8,4 +8,6 @@ import java.util.Set;
 public interface BoardService {
     Board initiateGameBoard(Set<Player> players, Integer numberOfPlayerPits, Integer numberOfPitStones);
     Board playFromPit(Long boardId, int pitIndex);
+
+    Board getBoardById(Long boardId);
 }

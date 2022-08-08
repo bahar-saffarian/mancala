@@ -3,11 +3,10 @@ package com.bol.mancala.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,15 +16,16 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 public class Pit extends BaseEntity {
-    int pitIndexInBoard;
+    private int pitIndexInBoard;
     @ManyToOne
     private Player owner;
-    private boolean isMankala;
-    @OneToMany
+    private boolean isMancala;
+    @OneToMany(mappedBy = "pit")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private Set<Stone> stones = new HashSet<>();
 
-    public Pit(Player owner, boolean isMankala) {
+    public Pit(Player owner, boolean isMancala) {
         this.owner = owner;
-        this.isMankala = isMankala;
+        this.isMancala = isMancala;
     }
 }

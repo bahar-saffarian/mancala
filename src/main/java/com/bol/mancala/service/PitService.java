@@ -1,7 +1,7 @@
 package com.bol.mancala.service;
 
-import com.bol.mancala.data.LastStoneSowResult;
-import com.bol.mancala.data.SowResult;
+import com.bol.mancala.dto.LastStoneSowResult;
+import com.bol.mancala.dto.SowResult;
 import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Pit;
 import com.bol.mancala.model.Stone;
@@ -13,7 +13,7 @@ public interface PitService {
 
     LastStoneSowResult sowLastStone(Stone stone, Pit pit);
 
-    void sowCapturedStonesInMankala(Set<Stone> stones, Pit mankalaPit);
+    void sowCapturedStonesInMancala(Set<Stone> stones, Pit mancalaPit);
 
     Set<Stone> pickupStonesFromPit(int pitIndex, Board board);
 }

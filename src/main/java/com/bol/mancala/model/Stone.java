@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -15,6 +16,7 @@ import javax.persistence.Table;
 @NoArgsConstructor
 public class Stone extends BaseEntity {
     @ManyToOne
+    @JoinColumn(name = "pit_id")
     private Pit pit;
 
     public Stone(Pit pit) {

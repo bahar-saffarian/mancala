@@ -6,7 +6,7 @@ import com.bol.mancala.model.Player;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class MankalaRulesUtil {
+public class MancalaRulesUtil {
     public static boolean isTheGaveOver(Board board) {
         return board.getPlayers().stream().anyMatch(player ->
                 IntStream.range(player.getFirstPitIndex(), player.getFirstPitIndex() + player.getPitCount())
@@ -15,7 +15,7 @@ public class MankalaRulesUtil {
     }
 
     public static List<Player> getWinners(Board board) {
-        int maxStonesInMankala = board.getPlayers().stream().map(player -> player.getMankala().getStones().size()).max(Integer::compareTo).get();
-        return board.getPlayers().stream().filter(player -> player.getMankala().getStones().size() == maxStonesInMankala).toList();
+        int maxStonesInMancala = board.getPlayers().stream().map(player -> player.getMancala().getStones().size()).max(Integer::compareTo).get();
+        return board.getPlayers().stream().filter(player -> player.getMancala().getStones().size() == maxStonesInMancala).toList();
     }
 }

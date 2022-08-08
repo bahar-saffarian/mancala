@@ -1,4 +1,4 @@
-package com.bol.mancala.data;
+package com.bol.mancala.dto;
 
 public enum LastStoneSowResult {
     SOWED,

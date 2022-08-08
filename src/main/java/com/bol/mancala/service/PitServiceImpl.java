@@ -1,7 +1,7 @@
 package com.bol.mancala.service;
 
-import com.bol.mancala.data.LastStoneSowResult;
-import com.bol.mancala.data.SowResult;
+import com.bol.mancala.dto.LastStoneSowResult;
+import com.bol.mancala.dto.SowResult;
 import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Pit;
 import com.bol.mancala.model.Stone;
@@ -15,7 +15,7 @@ public class PitServiceImpl implements PitService {
     @Override
     public SowResult sow(Stone stone, Pit pit) {
         SowResult sowResult;
-        if (isOutOfTurnPlayerMankalaPit(pit, stone)) {
+        if (isOutOfTurnPlayerMancalaPit(pit, stone)) {
             sowResult = SowResult.NOT_SOWED;
         } else {
             sowStoneToPit(stone, pit);
@@ -30,8 +30,8 @@ public class PitServiceImpl implements PitService {
         pit.getStones().add(stone);
     }
 
-    private boolean isOutOfTurnPlayerMankalaPit( Pit pit, Stone stone) {
-        return pit.isMankala() && !isTwoPitOwnersTheSame(pit, stone.getPit());
+    private boolean isOutOfTurnPlayerMancalaPit(Pit pit, Stone stone) {
+        return pit.isMancala() && !isTwoPitOwnersTheSame(pit, stone.getPit());
     }
 
     private boolean isTwoPitOwnersTheSame(Pit pit, Pit otherPit) {
@@ -42,13 +42,13 @@ public class PitServiceImpl implements PitService {
     public LastStoneSowResult sowLastStone(Stone stone, Pit pit) {
         LastStoneSowResult sowResult;
 
-        if (pit.isMankala() && isTwoPitOwnersTheSame(pit, stone.getPit())) {
+        if (pit.isMancala() && isTwoPitOwnersTheSame(pit, stone.getPit())) {
             sowStoneToPit(stone, pit);
             sowResult = LastStoneSowResult.ANOTHER_ROUND;
         } else if (pit.getStones().size() == 0 && isTwoPitOwnersTheSame(pit, stone.getPit())) {
             sowStoneToPit(stone, pit);
             sowResult = LastStoneSowResult.TAKE_FROM_ALL_PLAYERS;
-        } else if (isOutOfTurnPlayerMankalaPit(pit, stone)) {
+        } else if (isOutOfTurnPlayerMancalaPit(pit, stone)) {
             sowResult = LastStoneSowResult.NOT_SOWED;
         } else {
             sowStoneToPit(stone, pit);
@@ -59,8 +59,8 @@ public class PitServiceImpl implements PitService {
     }
 
     @Override
-    public void sowCapturedStonesInMankala(Set<Stone> stones, Pit mankalaPit) {
-        stones.forEach(stone -> sowStoneToPit(stone, mankalaPit));
+    public void sowCapturedStonesInMancala(Set<Stone> stones, Pit mancalaPit) {
+        stones.forEach(stone -> sowStoneToPit(stone, mancalaPit));
     }
 
     @Override

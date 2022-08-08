@@ -1,11 +1,9 @@
 package com.bol.mancala.util;
 
 import com.bol.mancala.model.Board;
-import com.bol.mancala.model.Player;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
 import static com.bol.mancala.util.PlayBoardValidator.*;
@@ -14,7 +12,7 @@ public interface PlayBoardValidator extends Function<Board, List<ValidationResul
     enum ValidationResult {
         THE_GAME_IS_OVER,
         INDEX_NOT_IN_BOARD_RANGE,
-        MANKALA_IS_NOT_ACCEPTABLE_AS_START_POINT,
+        MANCALA_IS_NOT_ACCEPTABLE_AS_START_POINT,
         VIOLATE_PLAYER_TURN,
         START_PIT_IS_EMPTY,
     }
@@ -28,10 +26,10 @@ public interface PlayBoardValidator extends Function<Board, List<ValidationResul
                         List.of() : List.of(ValidationResult.INDEX_NOT_IN_BOARD_RANGE);
     }
 
-    static PlayBoardValidator validateNotSelectMankalaAsStartPoint(int startIndex) {
+    static PlayBoardValidator validateNotSelectMancalaAsStartPoint(int startIndex) {
         return board ->
-                board.getPits().get(startIndex).isMankala() ?
-                        List.of(ValidationResult.MANKALA_IS_NOT_ACCEPTABLE_AS_START_POINT) : List.of();
+                board.getPits().get(startIndex).isMancala() ?
+                        List.of(ValidationResult.MANCALA_IS_NOT_ACCEPTABLE_AS_START_POINT) : List.of();
     }
 
     static PlayBoardValidator validateToNotViolatePlayerTurn(int startIndex) {
@@ -64,7 +62,7 @@ public interface PlayBoardValidator extends Function<Board, List<ValidationResul
         return validateGameOver().and(
                 validateIndexInRange(pitIndex)).and(
                 validateNotSelectEmptyPitAsStartPoint(pitIndex)).and(
-                validateNotSelectMankalaAsStartPoint(pitIndex)).and(
+                validateNotSelectMancalaAsStartPoint(pitIndex)).and(
                 validateToNotViolatePlayerTurn(pitIndex));
     }
 }

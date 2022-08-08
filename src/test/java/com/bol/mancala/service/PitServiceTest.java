@@ -1,7 +1,7 @@
 package com.bol.mancala.service;
 
-import com.bol.mancala.data.LastStoneSowResult;
-import com.bol.mancala.data.SowResult;
+import com.bol.mancala.dto.LastStoneSowResult;
+import com.bol.mancala.dto.SowResult;
 import com.bol.mancala.helper.BoardTestHelper;
 import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Pit;
@@ -15,19 +15,20 @@ import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class PitServiceTest {
+public class PitServiceTest extends BoardTestHelper {
     private PitService pitService;
 
     @BeforeEach
     void setUp() {
         pitService = new PitServiceImpl();
+        initializeBoardService();
     }
 
 
     @Test
     void sowPositiveTest() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         Set<Stone> stones = pitService.pickupStonesFromPit(0, board);
         Stone firstStoneToSow = stones.stream().findFirst().get();
         Pit firstPitToSow = board.getPits().get(1);
@@ -40,26 +41,26 @@ public class PitServiceTest {
     }
 
     @Test
-    void notSowInOtherPlayerMankalaPit() {
+    void notSowInOtherPlayerMancalaPit() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         Set<Stone> stones = pitService.pickupStonesFromPit(0, board);
         Stone stoneToSow = stones.stream().findFirst().get();
-        Pit otherMankalaPitToSow = board.getPits().stream()
-                .filter(pit -> pit.isMankala() && !pit.getOwner().getName().equals(stoneToSow.getPit().getOwner().getName()))
+        Pit otherMancalaPitToSow = board.getPits().stream()
+                .filter(pit -> pit.isMancala() && !pit.getOwner().getName().equals(stoneToSow.getPit().getOwner().getName()))
                 .findFirst().get();
         //When
-        SowResult sowResult = pitService.sow(stoneToSow, otherMankalaPitToSow);
+        SowResult sowResult = pitService.sow(stoneToSow, otherMancalaPitToSow);
         //Then
         assertThat(sowResult).isEqualTo(SowResult.NOT_SOWED);
-        assertThat(otherMankalaPitToSow.getStones().contains(stoneToSow)).isFalse();
-        assertThat(stoneToSow.getPit().equals(otherMankalaPitToSow)).isFalse();
+        assertThat(otherMancalaPitToSow.getStones().contains(stoneToSow)).isFalse();
+        assertThat(stoneToSow.getPit().equals(otherMancalaPitToSow)).isFalse();
     }
 
     @Test
     void sowLastStoneInOwnerNotEmptyPit() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         Set<Stone> stones = pitService.pickupStonesFromPit(0, board);
         Stone lastStoneToSow = stones.stream().findFirst().get(); //consider it's the last one
         Pit lastPitToSow = board.getPits().get(1);//consider it's the last pit to sow stone
@@ -72,50 +73,50 @@ public class PitServiceTest {
     }
 
     @Test
-    void notSowLastStoneInOtherPlayerMankalaPit() {
+    void notSowLastStoneInOtherPlayerMancalaPit() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         Set<Stone> stones = pitService.pickupStonesFromPit(0, board);
         Stone lastStoneToSow = stones.stream().findFirst().get(); //Consider it's the last one to sow
-        Pit otherMankalaPitToSow = board.getPits().stream()
-                .filter(pit -> pit.isMankala() && !pit.getOwner().getName().equals(lastStoneToSow.getPit().getOwner().getName()))
+        Pit otherMancalaPitToSow = board.getPits().stream()
+                .filter(pit -> pit.isMancala() && !pit.getOwner().getName().equals(lastStoneToSow.getPit().getOwner().getName()))
                 .findFirst().get();
-        int otherMankalaStoneSizeBeforSow = otherMankalaPitToSow.getStones().size();
+        int otherMancalaStoneSizeBeforSow = otherMancalaPitToSow.getStones().size();
         //When
-        LastStoneSowResult sowResult = pitService.sowLastStone(lastStoneToSow, otherMankalaPitToSow);
+        LastStoneSowResult sowResult = pitService.sowLastStone(lastStoneToSow, otherMancalaPitToSow);
         //Then
         assertThat(sowResult).isEqualTo(LastStoneSowResult.NOT_SOWED);
-        assertThat(otherMankalaPitToSow.getStones().contains(lastStoneToSow)).isFalse();
-        assertThat(lastStoneToSow.getPit().equals(otherMankalaPitToSow)).isFalse();
-        assertThat(otherMankalaStoneSizeBeforSow == otherMankalaPitToSow.getStones().size()).isTrue();
+        assertThat(otherMancalaPitToSow.getStones().contains(lastStoneToSow)).isFalse();
+        assertThat(lastStoneToSow.getPit().equals(otherMancalaPitToSow)).isFalse();
+        assertThat(otherMancalaStoneSizeBeforSow == otherMancalaPitToSow.getStones().size()).isTrue();
     }
 
     @Test
-    void whenLastStoneSowInOwnerMankalaPit() {
+    void whenLastStoneSowInOwnerMancalaPit() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         Player ownerPlayer = board.getTurn();
-        Pit ownerOrdinaryPit = board.getPits().stream().filter(pit -> !pit.isMankala() && pit.getOwner().getName().equals(ownerPlayer.getName())).findFirst().get();
+        Pit ownerOrdinaryPit = board.getPits().stream().filter(pit -> !pit.isMancala() && pit.getOwner().getName().equals(ownerPlayer.getName())).findFirst().get();
         Set<Stone> stones = pitService.pickupStonesFromPit(ownerOrdinaryPit.getPitIndexInBoard(), board);
         Stone lastStoneToSow = stones.stream().findFirst().get(); //consider it's the last one
-        Pit ownerMankalaToSow = ownerPlayer.getMankala();
+        Pit ownerMancalaToSow = ownerPlayer.getMancala();
         //When
-        LastStoneSowResult sowResult = pitService.sowLastStone(lastStoneToSow, ownerMankalaToSow);
+        LastStoneSowResult sowResult = pitService.sowLastStone(lastStoneToSow, ownerMancalaToSow);
         //Then
         assertThat(sowResult).isEqualTo(LastStoneSowResult.ANOTHER_ROUND);
-        assertThat(ownerMankalaToSow.getStones().contains(lastStoneToSow)).isTrue();
-        assertThat(lastStoneToSow.getPit().equals(ownerMankalaToSow)).isTrue();
+        assertThat(ownerMancalaToSow.getStones().contains(lastStoneToSow)).isTrue();
+        assertThat(lastStoneToSow.getPit().equals(ownerMancalaToSow)).isTrue();
     }
 
     @Test
     void whenLastStoneSowInOwnerEmptyPit() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         Player ownerPlayer = board.getTurn();
-        Pit ownerPitToPickup = board.getPits().stream().filter(pit -> !pit.isMankala() && pit.getOwner().getName().equals(ownerPlayer.getName())).findFirst().get();
+        Pit ownerPitToPickup = board.getPits().stream().filter(pit -> !pit.isMancala() && pit.getOwner().getName().equals(ownerPlayer.getName())).findFirst().get();
         Set<Stone> stones = pitService.pickupStonesFromPit(ownerPitToPickup.getPitIndexInBoard(), board);
         Pit ownerEmptyPitToSow = board.getPits().stream()
-                .filter(pit -> !pit.isMankala() && pit != ownerPitToPickup && pit.getOwner().getName().equals(ownerPlayer.getName())).findFirst().get();
+                .filter(pit -> !pit.isMancala() && pit != ownerPitToPickup && pit.getOwner().getName().equals(ownerPlayer.getName())).findFirst().get();
         ownerEmptyPitToSow.setStones(new HashSet<>());
         Stone lastStoneToSow = stones.stream().findFirst().get(); //consider it's the last one
         //When
@@ -128,28 +129,28 @@ public class PitServiceTest {
 
 
     @Test
-    void sowCapturedStonesInMankalaPit() {
+    void sowCapturedStonesInMancalaPit() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         Player ownerPlayer = board.getTurn();
-        int ownerPlayerMankalaSizeBeforeSow = ownerPlayer.getMankala().getStones().size();
+        int ownerPlayerMancalaSizeBeforeSow = ownerPlayer.getMancala().getStones().size();
         Player otherPlayer = ownerPlayer.getNextPlayer();
         Pit otherPlayerPitToCapture = board.getPits().get(otherPlayer.getFirstPitIndex()); //for example to capture from first pits
         int otherPlayerPitSizeBeforeSow = otherPlayerPitToCapture.getStones().size();
         //When
         Set<Stone> capturedStones = pitService.pickupStonesFromPit(otherPlayerPitToCapture.getPitIndexInBoard(), board);
-        pitService.sowCapturedStonesInMankala(capturedStones, ownerPlayer.getMankala());
+        pitService.sowCapturedStonesInMancala(capturedStones, ownerPlayer.getMancala());
         //Then
-        assertThat(ownerPlayer.getMankala().getStones().size()).isEqualTo(otherPlayerPitSizeBeforeSow + ownerPlayerMankalaSizeBeforeSow);
+        assertThat(ownerPlayer.getMancala().getStones().size()).isEqualTo(otherPlayerPitSizeBeforeSow + ownerPlayerMancalaSizeBeforeSow);
         assertThat(otherPlayerPitToCapture.getStones().size()).isEqualTo(0);
-        assertThat(ownerPlayer.getMankala().getStones().size() + otherPlayerPitToCapture.getStones().size() )
-                .isEqualTo(otherPlayerPitSizeBeforeSow + ownerPlayerMankalaSizeBeforeSow);
+        assertThat(ownerPlayer.getMancala().getStones().size() + otherPlayerPitToCapture.getStones().size() )
+                .isEqualTo(otherPlayerPitSizeBeforeSow + ownerPlayerMancalaSizeBeforeSow);
     }
 
     @Test
     void pickupStonesFromPit() {
         //Given
-        Board board = BoardTestHelper.initializeTowPlayerBoard();
+        Board board = initializeTowPlayerBoard();
         //When
         Set<Stone> stones = pitService.pickupStonesFromPit(0, board);
         //Then
