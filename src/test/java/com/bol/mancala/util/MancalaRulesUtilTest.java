@@ -2,12 +2,16 @@ package com.bol.mancala.util;
 
 import com.bol.mancala.helper.BoardTestHelper;
 import com.bol.mancala.model.Board;
+import com.bol.mancala.model.Pit;
 import com.bol.mancala.model.Player;
+import com.bol.mancala.model.Stone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -74,6 +78,56 @@ public class MancalaRulesUtilTest extends BoardTestHelper {
 
         //Then
         assertThat(theGaveOver).isFalse();
+
+    }
+
+    @Test
+    void whoIsTheWinner() {
+        //Given
+        Board board = initializeTowPlayerBoard();
+        Player winnerPlayer = board.getTurn();
+
+        board.getPits().stream().filter(pit -> !pit.isMancala()).forEach(pit -> {
+            Set<Stone> stones = pit.getStones();
+            stones.forEach(stone -> stone.setPit(winnerPlayer.getMancala()));
+            winnerPlayer.getMancala().setStones(stones);
+            pit.setStones(new HashSet<>());
+        });
+
+        //When
+        List<Player> winners = MancalaRulesUtil.getWinners(board);
+
+        //Then
+        assertThat(winners.size()).isEqualTo(1);
+        assertThat(winners.get(0).getName()).isEqualTo(winnerPlayer.getName());
+
+    }
+
+    @Test
+    void bothWinWhenThePointsAreEqual() {
+        //Given
+        Board board = initializeTowPlayerBoard();
+
+        board.getPlayers().forEach(player ->
+                board.getPits().stream()
+                        .filter(pit -> !pit.isMancala() && pit.getOwner().getName().equals(player.getName()))
+                        .forEach(pit -> {
+                            Set<Stone> stones = pit.getStones();
+                            stones.forEach(stone -> stone.setPit(player.getMancala()));
+                            player.getMancala().setStones(stones);
+                            pit.setStones(new HashSet<>());
+                        })
+        );
+
+
+        //When
+        List<Player> winners = MancalaRulesUtil.getWinners(board);
+
+        //Then
+        assertThat(winners.size()).isEqualTo(board.getPlayers().size());
+        assertThat(winners.stream().map(Player::getName).toList()
+                    .containsAll(board.getPlayers().stream().map(Player::getName).toList()))
+                .isTrue();
 
     }
 }

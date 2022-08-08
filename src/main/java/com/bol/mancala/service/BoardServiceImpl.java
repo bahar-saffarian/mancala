@@ -134,18 +134,25 @@ public class BoardServiceImpl implements BoardService {
 
         pickupAndSowStonesInSuccessivePits(pitIndex, board);
 
-        if (MancalaRulesUtil.isTheGaveOver(board)) {
-            board.setFinished(true);
-            board.setWinner(MancalaRulesUtil.getWinners(board));
-        }
+        determineWinnerIfTheGameIsOver(board);
 
         return board;
     }
 
-    @Override
-    @Transactional
-    public Board getBoardById(Long boardId) {
-        return boardRepository.findById(boardId).orElseThrow(() -> new NoSuchElementException("Board Not found"));//TODO Custom Exception
+    public void determineWinnerIfTheGameIsOver(Board board) {
+        if (MancalaRulesUtil.isTheGaveOver(board)) {
+            moveAllRemainStonesToTheOwnersMancala(board);
+            board.setFinished(true);
+            board.setWinner(MancalaRulesUtil.getWinners(board));
+        }
+    }
+
+    public void moveAllRemainStonesToTheOwnersMancala(Board board) {
+        board.getPits().stream().filter(pit -> !pit.isMancala() && pit.getStones().size()>0)
+                .forEach(pit -> {
+                    Set<Stone> pickedStones = pitService.pickupStonesFromPit(pit.getPitIndexInBoard(), board);
+                    pitService.sowCapturedStonesInMancala(pickedStones, pit.getOwner().getMancala());
+                });
     }
 
     private void pickupAndSowStonesInSuccessivePits(int pitIndex, Board board) {
@@ -188,5 +195,10 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
+    @Override
+    @Transactional
+    public Board getBoardById(Long boardId) {
+        return boardRepository.findById(boardId).orElseThrow(() -> new NoSuchElementException("Board Not found"));//TODO Custom Exception
+    }
 
 }
