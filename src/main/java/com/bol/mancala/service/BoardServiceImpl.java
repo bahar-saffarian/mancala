@@ -58,11 +58,16 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional
+    //return an initiated board that the pits are filled with stones and has empty mancala pits for each player
+    //params: The players is a list object of Player class witch just name values.
+    //numberOfPlayerPits is an optional value that specified how many pits each player should have(default value is provided by properties file)
+    //numberOfPitStones is an optional value that specified how many stones are in each pit in the beginning(default value is provided by properties file)
     public Board initiateGameBoard(Set<Player> players, Integer numberOfPlayerPits, Integer numberOfPitStones) {
         final int finalNumberOfPitStones = numberOfPitStones == null ? DEFAULT_NUMBER_OF_EACH_PIT_STONES : numberOfPitStones;
         final int finalNumberOfPlayerPits = numberOfPlayerPits == null ? DEFAULT_NUMBER_OF_EACH_PLAYER_PITS : numberOfPlayerPits;
         final Random rand = new Random();
 
+        //creating board pits filled with stones that are assigned to the pit
         List<Pit> boardPits =
                 players.stream().map(player -> {
                     List<Pit> playerPits =
@@ -97,6 +102,8 @@ public class BoardServiceImpl implements BoardService {
         return board;
     }
 
+    //Each player needs to have access to its mancala, the player's first pit index in the board, and the player's pit count in the board
+    //This function fills attributes of each player by the created pits information
     private void setBoardAttributesOfPlayers(List<Pit> boardPits) {
         Map<Player, Optional<Pit>> playerToFirstPitMap =
                 boardPits.stream().collect(Collectors.groupingBy(Pit::getOwner, Collectors.minBy(Comparator.comparing(Pit::getPitIndexInBoard))));
@@ -113,6 +120,7 @@ public class BoardServiceImpl implements BoardService {
                 player.setMancala(mancala.stream().findFirst().orElseThrow(() -> new IllegalStateException("Player Mancala value not found "))));
     }
 
+    //Each pit is aware of it's index in the board to help to express its position in some conditions
     private void setIndexValueOfPits(List<Pit> boardPits) {
         IntStream.range(0, boardPits.size()).forEach(index -> boardPits.get(index).setPitIndexInBoard(index));
     }
@@ -126,6 +134,10 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional
+    //This function play the board from a specified pit, pitIndex argument is the pit to play and boardId helps to load the related board
+    //At the end of this function it is checked that whether the game is finished or not.
+    //if the game is finished the points are calculated and the winner is determined.
+    //In case of having even points, the winner attribute is defined as list structure.
     public Board playFromPit(final Long boardId, final int pitIndex) {
         Board board = getBoardById(boardId);
 
