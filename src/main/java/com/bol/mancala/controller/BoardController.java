@@ -5,11 +5,16 @@ import com.bol.mancala.dto.BoardResponse;
 import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Player;
 import com.bol.mancala.service.BoardService;
+import com.bol.mancala.swagger.ApiGeneralResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,30 +28,34 @@ public class BoardController {
         this.boardService = boardService;
     }
 
+    @ApiGeneralResponses
+    @Secured("ROLE_API_USER")
     @GetMapping("/{boardId}")
-    public ResponseEntity<BoardResponse> getBoard(@PathVariable("boardId") Long boardId) {
+    public BoardResponse getBoard(@PathVariable("boardId") Long boardId) {
         Board board = boardService.getBoardById(boardId);
 
-        return getBoardResponseEntity(board);
+        return BoardResponse.of(board);
     }
+
+    @ApiGeneralResponses
+    @Secured("ROLE_API_USER")
     @PostMapping("/add")
-    public ResponseEntity<BoardResponse> initiateBoard(@RequestBody BoardInitiateRequest boardInitiateRequest) {
+    public BoardResponse initiateBoard(@RequestBody @Valid BoardInitiateRequest boardInitiateRequest) {
         Set<Player> players = boardInitiateRequest.getPlayersName().stream().map(Player::new).collect(Collectors.toSet());
         Board initiatedBoard = boardService.initiateGameBoard(players, boardInitiateRequest.getNumberOfPlayerPits(), boardInitiateRequest.getNumberOfPitStones());
 
-        return getBoardResponseEntity(initiatedBoard);
+        return BoardResponse.of(initiatedBoard);
     }
 
+    @ApiGeneralResponses
+    @Secured("ROLE_API_USER")
     @PutMapping("/play/{boardId}")
-    public ResponseEntity<BoardResponse> playFromPit(
+    public BoardResponse playFromPit(
             @PathVariable("boardId") Long boardId,
             @RequestParam int pitIndex) {
         Board resultBoard = boardService.playFromPit(boardId, pitIndex);
 
-        return getBoardResponseEntity(resultBoard);
+        return BoardResponse.of(resultBoard);
     }
 
-    private ResponseEntity<BoardResponse> getBoardResponseEntity(Board board) {
-        return new ResponseEntity<>(new BoardResponse(board), HttpStatus.OK);
-    }
 }

@@ -2,6 +2,7 @@ package com.bol.mancala.dto;
 
 import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Player;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class BoardResponse implements Serializable {
     private Long id;
     private List<PitResponse> pits;
@@ -22,18 +24,24 @@ public class BoardResponse implements Serializable {
     private Set<PlayersResponse> winners;
     private boolean isFinished;
 
-    public BoardResponse(Board board) {
-        this.id = board.getId();
-        this.pits = board.getPits().stream().map(PitResponse::new).toList();
-        this.turn = board.getTurn().getName();
-        this.isFinished = board.isFinished();
+    public static BoardResponse of(Board board) {
         AtomicInteger order = new AtomicInteger(0);
-        this.players = board.getPlayers().stream().sorted(Comparator.comparing(Player::getName))
+        Set<PlayersResponse> players = board.getPlayers().stream().sorted(Comparator.comparing(Player::getName))
                 .map(
                         player -> {
                             order.set(order.get() + 1);
                             return new PlayersResponse(player.getName(), order.get());
                         }
                 ).collect(Collectors.toSet());
+
+        return new BoardResponse(
+                board.getId(),
+                board.getPits().stream().map(PitResponse::new).toList(),
+                players,
+                board.getTurn().getName(),
+                null,
+                board.isFinished()
+        );
+
     }
 }

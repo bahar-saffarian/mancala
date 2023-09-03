@@ -1,6 +1,6 @@
 package com.bol.mancala.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+//import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +17,7 @@ import javax.persistence.Table;
 public class Player extends BaseEntity {
     private String name;
     @OneToOne
-    @JsonIgnore
+//    @JsonIgnore
     private Player nextPlayer;
     @OneToOne
     private Pit mancala;

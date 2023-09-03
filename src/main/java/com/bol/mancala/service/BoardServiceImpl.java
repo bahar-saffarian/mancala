@@ -2,6 +2,7 @@ package com.bol.mancala.service;
 
 import com.bol.mancala.dto.LastStoneSowResult;
 import com.bol.mancala.dto.SowResult;
+import com.bol.mancala.exceptions.BusinessException;
 import com.bol.mancala.model.Board;
 import com.bol.mancala.model.Pit;
 import com.bol.mancala.model.Player;
@@ -142,7 +143,7 @@ public class BoardServiceImpl implements BoardService {
         Board board = getBoardById(boardId);
 
         List<PlayBoardValidator.ValidationResult> validationErrors = PlayBoardValidator.validatePlayFromPit(pitIndex).apply(board);
-        if (!validationErrors.isEmpty()) throw new IllegalStateException(validationErrors.toString()); //TODO Custom exception handling
+        if (!validationErrors.isEmpty()) throw new BusinessException(validationErrors.toString());
 
         pickupAndSowStonesInSuccessivePits(pitIndex, board);
 
@@ -210,7 +211,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public Board getBoardById(Long boardId) {
-        return boardRepository.findById(boardId).orElseThrow(() -> new NoSuchElementException("Board Not found"));//TODO Custom Exception
+        return boardRepository.findById(boardId).orElseThrow(() -> new BusinessException("Board Not found"));
     }
 
 }
